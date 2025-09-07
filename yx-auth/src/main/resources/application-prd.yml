@@ -1,0 +1,41 @@
+server:
+  port: 9103
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/yx_auth?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root          # ← 改成你本机账号
+    password: 123456        # ← 改成你本机密码
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: none        # 已有表，建议 none；需要自动更新可改 update
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+
+    # 如有 Redis，再补这一段（可先不配）
+    data:
+      redis:
+        host: 127.0.0.1
+        port: 6379
+        database: 3
+
+cloud:
+  nacos:
+    discovery:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      namespace: public
+      metadata:
+        env: prd
+
+yx:
+  jwt:
+      secret: "WM6S9U8dX2Gm0G7QFJv1nY5ZcVqZJmJrJqQp1EV2m8bE="
+      expiration: 604800000   # 7天
+      header: Authorization
+      prefix: Bearer
