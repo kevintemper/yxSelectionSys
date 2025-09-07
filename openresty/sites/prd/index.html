@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>PRD Frontend</title></head>
+  <body>
+    <h2>PRD Frontend</h2>
+    <button id="btn">Call /api/auth/hello</button>
+    <pre id="out"></pre>
+    <script>
+      document.getElementById('btn').onclick = async () => {
+        const res = await fetch('/api/auth/hello');
+        const txt = await res.text();
+        document.getElementById('out').textContent =
+          'status=' + res.status + '\nX-Env-Echo=' + res.headers.get('X-Env-Echo') + '\n\n' + txt;
+      };
+    </script>
+  </body>
+</html>
