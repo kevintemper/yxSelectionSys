@@ -1,8 +1,8 @@
 
-import { Layout, Menu, Breadcrumb, Space, Avatar, Dropdown, Input } from 'antd';
+import { Layout, Menu, Breadcrumb, Space, Avatar, Dropdown, Input, Select, message, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
-import api from '../api/request';
+import api, { getEnv, setEnv, Env } from '../api/request';
 import { loadProfile } from '../store/perm';
 import { UserOutlined, SearchOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
 import classNames from 'classnames';
@@ -12,9 +12,19 @@ export default function MainLayout() {
   const [items, setItems] = useState<any[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [env, setEnvState] = useState<Env>(getEnv());
   const nav = useNavigate(); const { pathname } = useLocation();
 
   useEffect(() => { document.documentElement.className = theme === 'light' ? 'light' : ''; }, [theme]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<Env>).detail;
+      if (detail) setEnvState(detail);
+    };
+    window.addEventListener('yx-env-change', handler as EventListener);
+    return () => window.removeEventListener('yx-env-change', handler as EventListener);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -45,6 +55,20 @@ export default function MainLayout() {
         <Layout.Header style={{ background: 'var(--panel)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px' }} className="nav-shadow">
           <Breadcrumb items={[{ title: '首页' }, { title: pathname }]} />
           <Space>
+            <Tag color={env === 'gray' ? 'orange' : 'green'}>{env === 'gray' ? '灰度环境' : '生产环境'}</Tag>
+            <Select
+              value={env}
+              style={{ width: 120 }}
+              onChange={(value: Env) => {
+                setEnv(value);
+                setEnvState(value);
+                message.success(`已切换到${value === 'gray' ? '灰度' : '生产'}环境`);
+              }}
+              options={[
+                { label: '灰度环境', value: 'gray' },
+                { label: '生产环境', value: 'prd' },
+              ]}
+            />
             <Input allowClear size="middle" placeholder="全局搜索" prefix={<SearchOutlined />} style={{ width: 260 }} />
             {theme === 'dark' ? <SunOutlined onClick={() => setTheme('light')} style={{ cursor: 'pointer' }} /> : <MoonOutlined onClick={() => setTheme('dark')} style={{ cursor: 'pointer' }} />}
             <Dropdown overlay={menu} placement="bottomRight" trigger={['click']}><Avatar size={32} icon={<UserOutlined />} style={{ cursor: 'pointer' }} /></Dropdown>
