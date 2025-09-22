@@ -51,14 +51,18 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- 放这儿或写到 ~/.m2/settings.xml 的 mirror 都可以 -->
+  <!-- 直接使用 Maven Central，避免在无法访问阿里云镜像时构建失败 -->
   <repositories>
     <repository>
-      <id>aliyun-public</id>
-      <name>aliyun public</name>
-      <url>https://maven.aliyun.com/repository/public</url>
-      <releases><enabled>true</enabled></releases>
-      <snapshots><enabled>false</enabled></snapshots>
+      <id>central</id>
+      <name>Maven Central</name>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
 

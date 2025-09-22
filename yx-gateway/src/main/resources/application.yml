@@ -1,57 +1,21 @@
 server:
-  port: 9300
+  port: 8080
 
 spring:
+  application:
+    name: yx-gateway
   cloud:
     gateway:
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - RemoveResponseHeader=Server
-      routes:
-        - id: yx-auth-open
-          uri: lb://yx-auth
-          predicates:
-            - Path=/api/auth/**
-        - id: yx-auth-secure
-          uri: lb://yx-auth
-          predicates:
-            - Path=/api/user/**,/api/menu/**,/api/admin/**
-          filters:
-            - JwtVerify
-        - id: yx-store
-          uri: lb://yx-store
-          predicates:
-            - Path=/api/store/**
-          filters:
-            - JwtVerify
-            - StripPrefix=1
+      routes: []
 
-  # 关闭 webflux 404 的白页
-  main:
-    web-application-type: reactive
-
-  # Nacos
-  nacos:
-    discovery:
-      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
-      namespace: public
-
-# 自定义的灰度规则（供 GrayMarkFilter 使用）
-gray:
-  enabled: true
-  percent: 20            # 20% 灰度
-  user-ids: [ 1, 2, 100 ] # 命中这些用户ID（从JWT里读）强制走 gray
-  include-paths:         # 只有这些接口参与灰度（留空表示全部）
-    - /api/store/**
-    - /api/user/**
 management:
   endpoints:
     web:
       exposure:
-        include: health,info   # 需要暴露的端点
-  endpoint:
-    health:
-      show-details: always     # 方便调试
-  server:
-  # 如果没特别需要，别单独配端口；保持和应用同端口即可
-   port: 9341
+        include: health,info,prometheus
+
+nacos:
+  discovery:
+    server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+    namespace: ${NACOS_NAMESPACE:public}
+    group: ${NACOS_GROUP:DEFAULT_GROUP}
