@@ -1,25 +1,11 @@
-server:
-  port: 9653
-
 spring:
   application:
     name: yx-auth
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/yx_auth?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-    username: root          # ← Change this to your local MySQL username
-    password: 123456        # ← Change this to your local MySQL password
-    hikari:
-      maximum-pool-size: 10
   cloud:
     nacos:
       discovery:
-        server-addr: ${NACOS_ADDR:127.0.0.1:8848}   # If NACOS_ADDR is not set, defaults to localhost
+        server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
         metadata:
-          env: ${ENVIRONMENT:gray}                    # If ENVIRONMENT is not set, defaults to 'prd'
-      config:
-        server-addr: ${NACOS_ADDR:127.0.0.1:8848}    # Defaults to localhost if not set
-        file-extension: yaml
-yx:
-  jwt:
-    secret: WM6S9U8dX2Gm0G7QFJv1nY5ZcVqZJmJrJqQp1EV2m8bE=  # ← Make sure this is a secure 256-bit secret
+          version: ${SERVICE_VERSION:prd}

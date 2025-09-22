@@ -19,12 +19,30 @@ const clearTokens = () => { localStorage.removeItem(AT); localStorage.removeItem
 const getCookie = (k: string) =>
   document.cookie.split('; ').find(x => x.startsWith(`${k}=`))?.split('=')[1];
 
-const getEnv = (): 'gray' | 'prd' => {
+export type Env = 'gray' | 'prd';
+
+const ENV_KEY = 'env';
+
+const normalizeEnv = (value: string | null | undefined): Env | '' => {
+  if (!value) return '';
+  const lower = value.toLowerCase();
+  return lower === 'gray' ? 'gray' : lower === 'prd' ? 'prd' : '';
+};
+
+export const getEnv = (): Env => {
   // 优先 cookie: env=gray|prd，其次 localStorage.env，默认为 prd
-  const fromCookie = (getCookie('env') || '').toLowerCase();
-  const fromLS = (localStorage.getItem('env') || '').toLowerCase();
-  const v = (fromCookie || fromLS) as 'gray' | 'prd';
-  return v === 'gray' ? 'gray' : 'gray';
+  const fromCookie = normalizeEnv(getCookie(ENV_KEY));
+  if (fromCookie) return fromCookie;
+  const fromLS = normalizeEnv(localStorage.getItem(ENV_KEY));
+  return fromLS || 'prd';
+};
+
+export const setEnv = (env: Env) => {
+  const target: Env = env === 'gray' ? 'gray' : 'prd';
+  localStorage.setItem(ENV_KEY, target);
+  const maxAge = 7 * 24 * 60 * 60; // 和“记住登录”一致，7 天
+  document.cookie = `${ENV_KEY}=${target}; path=/; max-age=${maxAge}`;
+  window.dispatchEvent(new CustomEvent('yx-env-change', { detail: target }));
 };
 
 // --------- 刷新队列，避免并发重复刷新 ----------
@@ -53,6 +71,8 @@ api.interceptors.request.use((cfg: InternalAxiosRequestConfig) => {
   if (at) cfg.headers.Authorization = `Bearer ${at}`;
   const env = getEnv();
   cfg.headers['X-Env'] = env;
+  cfg.headers['X-Gray'] = env;
+  cfg.headers['SERVICE-TAG'] = env;
   return cfg;
 });
 

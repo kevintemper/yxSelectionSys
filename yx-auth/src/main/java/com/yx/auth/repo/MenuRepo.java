@@ -1,2 +1,0 @@
-package com.yx.auth.repo; import com.yx.auth.domain.*; import org.springframework.data.jpa.repository.*; import java.util.*;
-public interface MenuRepo extends JpaRepository<Menu,Long>{ java.util.List<Menu> findByParentIdOrderBySortAsc(Long parentId); }

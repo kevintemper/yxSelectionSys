@@ -1,0 +1,41 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: yx-auth
+  datasource:
+    url: jdbc:h2:mem:yxauth;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+nacos:
+  discovery:
+    server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+    namespace: ${NACOS_NAMESPACE:public}
+    group: ${NACOS_GROUP:DEFAULT_GROUP}
+
+logging:
+  level:
+    com.yx: INFO
