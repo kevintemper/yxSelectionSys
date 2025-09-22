@@ -1,91 +1,87 @@
-# 严选电商系统 (Yanxuan E-Commerce System)
+# 畅购严选电商系统
 
-## 📖 项目简介
-严选系统是一个基于 **SpringCloud Alibaba** 的电商后台管理平台，采用 **JDK 17** 开发，前端使用 **React + Ant Design + Vite**。  
-本系统目标是支持 **商家管理、会员管理、运营管理、数据看板** 等功能，同时实现 **灰度发布链路**，方便在实际场景中进行灰度测试和生产环境切换。
+一个基于 **Spring Boot 3 + Spring Cloud Alibaba 2023**、全面支持 **JDK 17** 的现代化电商后端解决方案。项目围绕“严选”场景构建，聚焦账号体系、商家服务、统一网关及灰度发布链路，提供可复用的企业级脚手架。
 
----
+## 🔧 架构概览
+```
+                ┌─────────────────────────────────────────┐
+                │                 OpenResty               │
+                │   - 静态资源目录灰度治理                │
+用户 (PC/APP) ──┤   - Lua 脚本转发灰度/生产后端          ├─▶ Spring Cloud Gateway ──▶ yx-auth
+                │                                         │                         └─▶ yx-store
+                └─────────────────────────────────────────┘
+```
+* **南北向网关**：OpenResty + Spring Cloud Gateway 负责前端/外部调用，按 Header / Cookie / 用户 ID 灰度。
+* **东西向网关**：Gateway 额外暴露 `kaiwen-proxy` 前缀，供集团内部系统调用，并携带目标环境标识。
+* **微服务注册**：Nacos 以 `version=gray|prd` 元数据标记环境，Gateway 根据请求上下文选择目标实例。
 
-## 📂 项目模块
-- **yx-auth**  
-  - 提供账号注册、登录、JWT 鉴权、验证码校验、记住登录等功能
-- **yx-store**  
-  - 商家管理服务，支持商家入驻、商品管理、外部合作等
-- **gateway**  
-  - Spring Cloud Gateway + OpenResty 网关，支持服务路由与灰度流量控制
-- **前端 (yx-admin)**  
-  - React + Ant Design 管理后台，提供菜单路由和界面展示
+## 📦 模块说明
+| 模块 | 描述 |
+| ---- | ---- |
+| `yx-common` | 公共 Starter 集合。提供 JSON 规范、异常拦截、MDC Trace、MyBatis 快速集成等能力。|
+| `yx-auth` | 主账号服务，支持商家账号、角色、菜单资源定义，JWT 登录、验证码校验、自动续期。|
+| `yx-store` | 商家域服务，提供商家/商品基础能力，并支持按灰度标签过滤产品。|
+| `yx-gateway` | Spring Cloud Gateway 网关，内置灰度路由、南北/东西向过滤器、环境隔离。|
+| `openresty` | 网关层 Lua 脚本与示例配置，控制静态资源目录与接口转发一致灰度。|
+| `docs` | 架构设计与灰度流量控制方案说明。|
 
----
+## ✅ 关键能力
+- **统一 Starter**
+  - `yx-common-core-starter`：全局响应包装、异常处理、基础 Bean 配置。
+  - `yx-common-log-starter`：MDC TraceId 过滤器，支持多线程日志追踪。
+  - `yx-common-mybatis-starter`：约定式 Mapper 扫描、Hikari 数据源整合。
+- **主账号体系 (yx-auth)**
+  - 商家账号/角色/菜单/资源模型，提供 CRUD 接口。
+  - JWT 鉴权 + 7 天记住登录 + 临期自动续期。
+  - 图形验证码接口，支持登录安全管控。
+  - OpenAPI 文档自动生成，便于前后端联调。
+- **商家域服务 (yx-store)**
+  - 商家/商品内存实现，展示服务编排与灰度过滤策略。
+  - 根据 `X-Gray` 请求头过滤灰度商品，实现链路一致性。
+- **网关与灰度**
+  - Header / Cookie / 用户 ID / 接口前缀多维灰度控制。
+  - Gateway 动态感知 `version` 元数据，灰度实例只调灰度实例。
+  - 南北向 (外部) 与东西向 (内部) 流量隔离示例。
 
-## ✅ 已实现功能
-- [x] 项目初始化与多模块管理（Maven + Spring Boot Starter）
-- [x] yx-auth 服务：账号体系 + JWT 登录（7天记住登录，自动续期）
-- [x] 验证码接口（前后端联调可用）
-- [x] yx-store 服务：基础商家服务搭建
-- [x] Nacos 注册中心集成，支持多环境 (`gray` / `prd`) 标签
-- [x] 基础前端路由跳转与管理后台框架
-- [x] 灰度链路支持：  
-  - 按用户 ID、流量百分比、接口维度进行灰度控制  
-  - 灰度服务只能调用灰度链路，生产服务只能调用生产链路
-
----
-
-## 🚧 未完成功能
-以下功能在文档中提到，但尚未实现或只完成部分：
-- [ ] 商家管理模块（账号、角色、菜单、资源权限）
-- [ ] 会员管理模块（会员注册与管理）
-- [ ] 运营账号体系（优惠券、活动规则）
-- [ ] 数据看板（商家 / 会员 / 运营可视化）
-- [ ] OpenResty Lua 灰度脚本完整接入
-- [ ] 前端界面美化与主题优化（目前是基础风格）
-
----
-
-## 🛠 本地运行
-
-### 后端
-1. 启动 Nacos (默认端口 `8848`)  
-2. 分别运行以下服务：
+## 🚀 快速开始
+1. 启动 [Nacos](https://nacos.io/) 并创建 `gray`、`prd` 命名空间（或使用默认 `public`）。
+2. 为 `yx-auth`、`yx-store` 分别运行两个实例，设置 `SERVICE_VERSION=gray` 或 `prd` 环境变量注册到不同环境。
+3. 启动 Gateway：
    ```bash
-   cd yx-auth
-   mvn spring-boot:run
-   
-   cd yx-store
-   mvn spring-boot:run
-   
-   cd gateway
-   mvn spring-boot:run
+   mvn -pl yx-gateway spring-boot:run
    ```
+4. 启动 Auth 与 Store 服务：
+   ```bash
+   mvn -pl yx-auth spring-boot:run
+   mvn -pl yx-store spring-boot:run
+   ```
+5. 登录示例：
+   - 获取验证码：`GET /api/auth/captcha`
+   - 登录接口：`POST /api/auth/login`
+   - 默认管理员账号：`admin / ChangeMe123!`
 
-### 前端
-```bash
-cd yx-admin
-npm install
-npm run dev
+## 🧪 灰度体验
+- 设置请求头 `X-Gray: gray` 或 `X-User-Id: 123gray`，Gateway 自动转发至灰度实例。
+- OpenResty `conf` 目录示例将静态文件与接口请求拆分目录，实现前后端一体化灰度。
+- `X-Gray` 透传至 `yx-store`，仅返回灰度商品，确保数据链路一致。
+
+## 🧱 目录结构
+```
+.
+├── docs/                      # 架构与灰度说明
+├── openresty/                 # Lua 网关脚本
+├── pom.xml                    # 顶层聚合工程
+├── yx-common/                 # 公共 Starter 聚合模块
+│   ├── yx-common-core-starter
+│   ├── yx-common-log-starter
+│   └── yx-common-mybatis-starter
+├── yx-auth/                   # 账号服务
+├── yx-store/                  # 商家服务
+└── yx-gateway/                # 网关服务
 ```
 
-访问地址: `http://localhost:5173`
+## 📚 设计文档
+- `docs/architecture.md`：整体架构与服务关系
+- `docs/gray-strategy.md`：灰度策略与 OpenResty 脚本示例
 
----
-
-## 📌 技术栈
-- **后端**: Spring Boot, SpringCloud Alibaba, Nacos, Gateway, OpenResty  
-- **数据库**: MySQL  
-- **前端**: React, Ant Design, Vite  
-- **工具链**: Maven, Git, Docker (可选)
-
----
-
-## 🗂 项目目录
-```
-project/
-├── yx-auth         # 账号服务
-├── yx-store        # 商家服务
-├── gateway         # 网关
-├── yx-admin        # 前端项目
-├── pom.xml         # 父项目配置
-└── README.md
-```
-
-
+> 项目仍在持续建设中，欢迎根据业务需要扩展数据库落地、前端 UI 以及更多业务模块。
